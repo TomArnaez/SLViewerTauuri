@@ -124,6 +124,5 @@ pub fn invert_colors_grayscale(
             inverted_image.put_pixel(x, y, Luma([inverted_pixel_value]));
         }
     }
-
     inverted_image
 }

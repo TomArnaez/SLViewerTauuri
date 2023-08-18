@@ -5,42 +5,29 @@ use image::io::Reader as ImageReader;
 use image::{DynamicImage, ImageOutputFormat};
 use std::io::Cursor;
 
-#[tauri::command]
-fn image() -> String {
-    let img2 = ImageReader::open("C:/dev/data/sl_test.tif")
-        .unwrap()
-        .decode()
-        .unwrap();
+mod commands;
+mod cpp;
+mod statistics;
 
-    let mut image_data: Vec<u8> = Vec::new();
-    img2.write_to(&mut Cursor::new(&mut image_data), ImageOutputFormat::Png)
-        .unwrap();
-    let res_base64 = base64::encode(image_data);
-    format!("data:image/png;base64,{}", res_base64)
-}
+use std::thread;
 
-#[tauri::command]
-fn get_captures() -> Vec<Vec<String>> {
-    let mut my_vector: Vec<Vec<String>> = vec![vec!["test".to_string(), "test".to_string()]];
-
-    my_vector
-}
-
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
 fn test() {
-    println!("Hello, ! You've been greeted from Rust!");
+    let mut device = cpp::Detector::new();
+    device.signal_accumulation(100, 10);
 }
 
 fn main() {
+    let mut device = cpp::Detector::new();
+
+    thread::spawn(|| test());
     tauri::Builder::default()
         .plugin(tauri_plugin_window::init())
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, test, image, get_captures])
+        .invoke_handler(tauri::generate_handler![
+            commands::greet,
+            commands::image,
+            commands::get_captures
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")
 }
